@@ -30,4 +30,10 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'marvel' => [
+        'key' => env('MARVEL_API_KEY'),
+        'secret' => env('MARVEL_API_SECRET'),
+        'api_url' => env('MARVEL_API_URL'),
+    ],
+
 ];
