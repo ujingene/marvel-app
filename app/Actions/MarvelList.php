@@ -3,11 +3,12 @@
 namespace App\Actions;
 
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Map Api 
+ * This action handle authenticates api and returns the marvel characters 
  */
 class MarvelList
 {
@@ -20,17 +21,21 @@ class MarvelList
 	}
 	public function execute($endpoint)
 	{
-		$response = Cache::remember('marvel_characters', 300, function() use($endpoint) {
-		    return Http::get(config('services.marvel.api_url') . $endpoint, [
-			'ts' 		=> $this->ts,
-            'apikey' 	=> $this->apiKey,
-            'hash' 		=> $this->hash,
-            'limit'		=> 5
-        ]);
-		});
+		try{
 
-        $characters = json_decode($response->body());
+			$response = Http::timeout(5)->get(config('services.marvel.api_url') . $endpoint, 
+			    	[
+			    		'ts' 		=> $this->ts,
+			    		'apikey' 	=> $this->apiKey,
+			    		'hash' 		=> $this->hash
+			    	]);
 
-        return $characters;
+			// Cache the data for 1 day 
+			Cache::put('marvel_characters', $response->json(), Carbon::now()->addDay());
+
+	        return $response['data'] ?? null;
+		} catch( Exception $e){
+			throw new $e;
+		}
 	}
 }
