@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BulkInvoiceUploadController;
 use App\Http\Controllers\CharacterController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,3 +16,5 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', [CharacterController::class, 'index'])->name('list_characters');
+Route::get('/invoice', [BulkInvoiceUploadController::class, 'index'])->name('csv_page');
+Route::post('/invoice/import', [BulkInvoiceUploadController::class, 'import'])->name('import_csv');
