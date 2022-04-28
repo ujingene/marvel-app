@@ -1,31 +1,31 @@
 <?php
 
-use App\Imports\InvoicesImport;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Maatwebsite\Excel\Excel;
-
-uses(CreatesApplication::class);
-
-uses(Tests\TestCase::class, RefreshDatabase::class);
-
-beforeEach()->createApplication();
-
-public function setup(): void
-{
-    Excel::fake();
-}
+use Maatwebsite\Excel\Concerns\ToArray;
+use Maatwebsite\Excel\Importer;
+use Maatwebsite\Excel\Concerns\Importable;
 
 test('can import csv invoice', function () {
-    
-    $this->get();
+    $import = new class implements ToArray
+        {
+            use Importable;
 
-    Excel::assertImported('invoice.csv', 'invoice');
-    
-    Excel::assertImported('invoice.csv', 'invoice', function(InvoicesImport $import) {
-        return true;
-    });
-    
-    Excel::assertImported('invoice.csv', function(InvoicesImport $import) {
-        return true;
-    });
+            /**
+             * @param  array  $array
+             */
+            public function array(array $array)
+            {
+                $this->assertEquals([
+                    [
+                        '536365','71053','WHITE METAL LANTERN','6','12/01/2010 08:26','3.39','17850','United Kingdom'
+                    ],
+                    [
+                        '536365','71053','WHITE METAL LANTERN','6','12/01/2010 08:26','3.39','17850','United Kingdom'
+                    ],
+                ], $array);
+            }
+        };
+
+        $imported = $import->import('import.csv');
+
+        $this->assertInstanceOf(Importer::class, $imported);
 });
