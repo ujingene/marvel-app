@@ -25,17 +25,15 @@ class CharacterController extends Controller
             $data = $data1['results'];
 
             $characters = $this->paginate($data);
-
-            /*foreach ($characters as $key => $character) {
-                dd($character);
-                dd($character['thumbnail']['path'] . '.' . $character['thumbnail']['extension']);
-            }*/
-
         } 
 
         if (!Cache::has('marvel_characters')){
             $response = $this->marvelCharacters->execute($endpoint = 'characters');
-            $characters = $response['results'];
+            $data1 = $response['data'];
+
+            $data = $data1['results'];
+
+            $characters = $this->paginate($data);
         }
         return view('actors.list', compact('characters'));
     }

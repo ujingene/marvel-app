@@ -2,8 +2,9 @@
 
 namespace App\Actions;
 
+use App\Exceptions\MarvelCharacterReQuestException;
 use Carbon\Carbon;
-use Exception;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
@@ -21,21 +22,43 @@ class MarvelList
 	}
 	public function execute($endpoint)
 	{
-		try{
+		$response = Http::retry(3, 500, function ($exception) {
+			return $exception instanceof ConnectionException;
+		})->get(config('services.marvel.api_url') . $endpoint, 
+		[
+    		'ts' 		=> $this->ts,
+    		'apikey' 	=> $this->apiKey,
+    		'hash' 		=> $this->hash
+    	]);
 
-			$response = Http::timeout(5)->get(config('services.marvel.api_url') . $endpoint, 
-			    	[
-			    		'ts' 		=> $this->ts,
-			    		'apikey' 	=> $this->apiKey,
-			    		'hash' 		=> $this->hash
-			    	]);
+		// Throw an exception if a server error occurred
+        if ($response->serverError()) {
+            throw new MarvelCharacterReQuestException('Server error', $response->status());
+        }
 
-			// Cache the data for 1 day 
-			Cache::put('marvel_characters', $response->json(), Carbon::now()->addDay());
+        // Throw an exception if a client error occurred
+        if ($response->clientError()) {
+            switch ($response->status()) {
+                case 401: $error = 'Invalid hash or referer'; break;
+                case 403: $error = 'Forbidden'; break;
+                case 405: $error = 'Method not allowed'; break;
+                case 409: $error = 'Invalid parameters'; break;
+                default: $error = 'An error occurred'; break;
+            }
 
-	        return $response['data'] ?? null;
-		} catch( Exception $e){
-			throw new $e;
-		}
+            throw new MarvelCharacterReQuestException($error, $response->status());
+        }
+
+        $response = [
+        	'data' => $response['data'] ?? null,
+        	'headers' => $response->headers(),
+        	'status' => $response->status(),
+        	'cookies' => $response->cookies()
+        ];
+
+		// Cache the data for 1 day 
+		Cache::put('marvel_characters', $response, Carbon::now()->addDay());
+
+        return $response;
 	}
 }
