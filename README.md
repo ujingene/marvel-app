@@ -35,7 +35,7 @@ php artisan key:generate
 
 ```
 php artisan config:cache
-php artisan migrate:install
+php artisan optimize:clear
 ```
 
 ## update the database configurations with your preferred details
@@ -51,7 +51,7 @@ DB_PASSWORD=
 
 ## Run migrations
 ```
-php artisan migrate:fresh
+php artisan migrate
 ```
 
 ## Swap your Marvel Comics Api credentials here
