@@ -73,7 +73,13 @@ php artisan serve
 
 ### open another terminal to execute queue worker
 ```
-php artisan queue:worker
+php artisan queue:work
+```
+
+or listen to fired listeners 
+
+```
+php artisan queue:listen
 ```
 
 # To Execute tests
