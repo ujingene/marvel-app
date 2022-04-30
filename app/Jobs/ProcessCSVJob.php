@@ -10,19 +10,19 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class ProcessCSVJob implements ShouldQueue
+class ProcessCSVJob implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $fileId;
+    protected $flag;
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($fileId)
+    public function __construct($flag)
     {
-        $this->fileId = $fileId;
+        $this->flag = $flag;
     }
 
     /**
@@ -33,6 +33,6 @@ class ProcessCSVJob implements ShouldQueue
     public function handle()
     {
         $uploadBulkInvoice = new UploadBulkInvoice();
-        $uploadBulkInvoice->execute($this->fileId);
+        $uploadBulkInvoice->execute($this->flag);
     }
 }

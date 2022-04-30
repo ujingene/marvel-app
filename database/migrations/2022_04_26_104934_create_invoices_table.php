@@ -19,7 +19,7 @@ class CreateInvoicesTable extends Migration
             $table->string('StockCode');
             $table->string('Description');
             $table->integer('Quantity');
-            $table->string('InvoiceDate');
+            $table->dateTime('InvoiceDate');
             $table->float('UnitPrice');
             $table->bigInteger('CustomerID');
             $table->string('Country');

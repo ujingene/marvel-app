@@ -19,19 +19,21 @@
 				</div>
 
 				<div class="flex items-center justify-between">
-						<form action="{{ route('import_csv') }}" method="POST" enctype="multipart/form-data" class="lg:ml-40 ml-10 space-x-8">
+						@if(Route::has('import_csv_custom'))
+							<form action="{{ route('import_csv_custom') }}" method="POST" enctype="multipart/form-data" class="lg:ml-40 ml-10 space-x-8">
 							@csrf
 							<div class="flex items-center justify-center bg-red-100">
 						      <div class="bg-white rounded-xl border p-3 max-w-lg">
 						        <div class="flex flex-col items-center space-y-2">
 						          <h1 class="font-bold text-xl text-gray-700 w-4/6 text-center">
-						            Multi-Invoice Upload
+						            Upload with Custom Code
 						          </h1>
 						          <input
 						            type="file"
 						            class="border-2 rounded-lg w-full h-12 px-4"
 						            name="invoiceDoc"
 						            value=""
+						            required
 						          />
 						          <button type="submit" 
 						            class="bg-blue-400 text-white rounded-md hover:bg-green-500 font-semibold px-4 py-3 w-full"
@@ -41,7 +43,35 @@
 						        </div>
 						      </div>
 						    </div>
-						</form>
+							</form>
+						@endif
+
+						@if(Route::has('import_csv_maatwebsite'))
+							<form action="{{ route('import_csv_maatwebsite') }}" method="POST" enctype="multipart/form-data" class="lg:ml-40 ml-10 space-x-8">
+							@csrf
+							<div class="flex items-center justify-center bg-red-100">
+						      <div class="bg-white rounded-xl border p-3 max-w-lg">
+						        <div class="flex flex-col items-center space-y-2">
+						          <h1 class="font-bold text-xl text-gray-700 w-4/6 text-center">
+						            Upload with Maatwebsite Excel
+						          </h1>
+						          <input
+						            type="file"
+						            class="border-2 rounded-lg w-full h-12 px-4"
+						            name="invoiceDoc"
+						            value=""
+						            required
+						          />
+						          <button type="submit" 
+						            class="bg-blue-400 text-white rounded-md hover:bg-green-500 font-semibold px-4 py-3 w-full"
+						          >
+						            Upload
+						          </button>
+						        </div>
+						      </div>
+						    </div>
+							</form>
+						@endif
 					</div>
 				</div>
 				<div>
@@ -113,7 +143,7 @@
 											</td>
 											<td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
 												<p class="text-gray-900 whitespace-no-wrap">
-												{{$invoice->InvoiceDate}}
+												{{Carbon\Carbon::parse($invoice->InvoiceDate)->format('d M Y H:i')}}
 												</p>
 											</td>
 											<td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">

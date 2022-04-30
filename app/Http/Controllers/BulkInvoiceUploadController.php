@@ -2,17 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\CreateFlag;
 use App\Actions\UploadBulkInvoice;
+use App\Events\FlagCreatedEvent;
 use App\Jobs\ProcessCSVJob;
-use App\Models\Flag;
 use App\Models\Invoice;
-use Illuminate\Support\Facades\Config;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class BulkInvoiceUploadController extends Controller
 {
-    public function __construct(UploadBulkInvoice $uploadBulkInvoice)
+    public function __construct(
+        UploadBulkInvoice $uploadBulkInvoice, 
+        CreateFlag $createFlag
+    )
     {
         $this->uploadBulkInvoice = $uploadBulkInvoice;
+        $this->createFlag = $createFlag;
     }
     /**
      * Display a listing of the resource.
@@ -21,35 +27,40 @@ class BulkInvoiceUploadController extends Controller
      */
     public function index()
     {
-        $invoices = Invoice::paginate(3);
+        $invoices = Cache::remember('invoice_list', Carbon::now()->addDays(7), function() { 
+                return Invoice::paginate(100);
+            }
+        );
         return view('invoice.index', compact('invoices'));
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  $flag
      * @return \Illuminate\Http\Response
      */
-    public function import()
+    public function import_custom()
     {
-        $csv_file = request()->file('invoiceDoc');
+        $flag = $this->createFlag->execute(request()->file('invoiceDoc'));
 
-        try {
-           $fname = md5(rand()) . '.csv';
-           $full_path = Config::get('filesystems.disks.local.root');
-           $csv_file->move( $full_path, $fname );
-
-           // Flag new file upload
-           $flag_table = Flag::firstOrNew(['file_name'=>$fname]);
-           $flag_table->save();
-       }catch(\Exception $e){
-           return redirect()->route('csv_page')->withErrors($e->getMessage()); 
-       }
-
-        dispatch(new ProcessCSVJob($flag_table->id))->delay(now()->addMinutes(0.5));
+        FlagCreatedEvent::dispatch($flag);
 
         return redirect()->route('csv_page');
     }
 
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  $flag
+     * @return \Illuminate\Http\Response
+     */
+    public function import_maatwebsite()
+    {
+        $flag = $this->createFlag->execute(request()->file('invoiceDoc'));
+
+        ProcessCSVJob::dispatch($flag);
+
+        return redirect()->route('csv_page');
+    }
 }

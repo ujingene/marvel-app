@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\Invoice;
+use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
@@ -19,12 +20,13 @@ class InvoicesImport implements ToModel, ShouldQueue, WithHeadingRow, WithBatchI
     */
     public function model(array $row)
     {
+        $InvoiceDate = Carbon::parse($row['InvoiceDate'])->toDateTimeString();
         return new Invoice([
             'InvoiceNo' => $row['InvoiceNo'],
             'StockCode' => $row['StockCode'],
             'Description' => $row['Description'],
             'Quantity' => $row['Quantity'],
-            'InvoiceDate' => $row['InvoiceDate'],
+            'InvoiceDate' => $InvoiceDate,
             'UnitPrice' => $row['UnitPrice'],
             'CustomerID' => $row['CustomerID'],
             'Country' => $row['Country']
@@ -33,12 +35,12 @@ class InvoicesImport implements ToModel, ShouldQueue, WithHeadingRow, WithBatchI
 
     public function batchSize(): int
     {
-        return 10000;
+        return 1000;
     }
 
     public function chunkSize(): int
     {
-        return 10000;
+        return 1000;
     }
 
     public function getCsvSettings(): array

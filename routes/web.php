@@ -17,4 +17,5 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [CharacterController::class, 'index'])->name('list_characters');
 Route::get('/invoice', [BulkInvoiceUploadController::class, 'index'])->name('csv_page');
-Route::post('/invoice/import', [BulkInvoiceUploadController::class, 'import'])->name('import_csv');
+Route::post('/invoice/import/custom', [BulkInvoiceUploadController::class, 'import_custom'])->name('import_csv_custom');
+Route::post('/invoice/import/maatwebsite', [BulkInvoiceUploadController::class, 'import_maatwebsite'])->name('import_csv_maatwebsite');
